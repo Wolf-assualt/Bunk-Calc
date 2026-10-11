@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bunk Calculator</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#e8f3ee;display:flex;justify-content:center;padding:20px}
+.card{width:100%;max-width:380px;background:#fff;border-radius:18px;padding:24px;box-shadow:0 6px 24px rgba(20,52,43,.15)}
+h1{margin:0 0 4px;font-size:24px;color:#14342b}p.sub{margin:0 0 18px;color:#5b6b64;font-size:14px}
+label{display:block;font-size:14px;color:#14342b;margin:12px 0 4px;font-weight:bold}
+input{width:100%;padding:11px;font-size:16px;border:1.5px solid #c5d6cd;border-radius:10px}
+button{width:100%;margin-top:18px;padding:13px;font-size:16px;font-weight:bold;color:#fff;background:#2e7d5b;border:0;border-radius:10px;cursor:pointer}
+#out{margin-top:18px;border-radius:12px;padding:16px;display:none}
+#pct{font-size:34px;font-weight:bold;margin:0}#status{font-weight:bold;margin:2px 0 8px}#msg{margin:0;font-size:16px}
+.bar{height:10px;background:#dfe8e3;border-radius:6px;margin:10px 0 0;overflow:hidden}.bar i{display:block;height:100%}
+.safe{background:#e6f4ec;color:#14532d}.safe i{background:#2e7d5b}
+.warn{background:#fff4dc;color:#7a4b00}.warn i{background:#f2a93b}
+.danger{background:#fde8e8;color:#8b1d1d}.danger i{background:#d64545}
+</style></head><body>
+<div class="card">
+<h1>Bunk Calculator</h1><p class="sub">Know how many classes you can skip</p>
+<label for="t">Total classes held</label><input id="t" type="number" min="0" value="300">
+<label for="a">Classes attended</label><input id="a" type="number" min="0" value="200">
+<label for="r">Required attendance (%)</label><input id="r" type="number" min="1" max="100" value="85">
+<label for="s">Total classes in semester (Optional)</label><input id="s" type="number" min="0" placeholder="e.g. 400">
+<button onclick="calc()">Calculate</button>
+<div id="out"><p id="pct"></p><p id="status"></p><p id="msg"></p><div class="bar"><i id="fill"></i></div></div>
+</div>
+<script>
+function calc(){
+  const t=+document.getElementById('t').value,a=+document.getElementById('a').value,r=(+document.getElementById('r').value)/100;
+  const sVal=document.getElementById('s').value;
+  const s = sVal === '' ? Infinity : +sVal;
+  const out=document.getElementById('out');
+  
+  if(!(t>0)||a<0||a>t||!(r>0&&r<1)||(s!==Infinity&&t>s)){
+    out.style.display='block';out.className='warn';
+    document.getElementById('pct').textContent='Check inputs';document.getElementById('status').textContent='';
+    document.getElementById('msg').textContent='Please ensure your inputs are logical (e.g. attended cannot exceed total held).';
+    document.getElementById('fill').style.width='0';return;
+  }
+  
+  const p=a/t*100;let cls,st,msg;
+  
+  if(p>=r*100){
+    const skip=Math.floor(a/r-t+1e-9);
+    cls=skip>=3?'safe':'warn';st=skip>=3?'Safe':'Borderline';
+    msg=skip>0?`You can bunk ${skip} more class${skip>1?'es':''}.`:'No spare classes. Do not skip!';
+  } else {
+    const need=Math.ceil((r*t-a)/(1-r)-1e-9);
+    cls='danger';st='Danger';
+    if(s!==Infinity && (t+need)>s){
+       msg=`Impossible! You need ${need} more consecutive classes, but only ${s-t} are left in the semester.`;
+    } else {
+       msg=`Attend the next ${need} classes to reach ${Math.round(r*100)}%.`;
+    }
+  }
+  
+  out.style.display='block';out.className=cls;
+  document.getElementById('pct').textContent=p.toFixed(1)+'%';
+  document.getElementById('status').textContent=st;
+  document.getElementById('msg').textContent=msg;
+  document.getElementById('fill').style.width=Math.min(p,100)+'%';
+}
+calc();
+</script></body></html>
